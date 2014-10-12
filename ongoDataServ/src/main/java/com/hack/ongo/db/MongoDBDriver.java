@@ -16,8 +16,10 @@ import com.ongo.model.Status;
 import com.hack.ongo.db.*;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class MongoDBDriver {
 
@@ -190,4 +192,76 @@ public class MongoDBDriver {
 		}
 		return msg;
 	}
+	   public static DBObject createNGODBObject(NGO ngo_obj) {
+	        BasicDBObjectBuilder docBuilder = BasicDBObjectBuilder.start();
+	                                 
+	        docBuilder.append("organisationName", ngo_obj.getOrganisationName());
+	        docBuilder.append("coordinatorName", ngo_obj.getCoordinatorName());
+	        docBuilder.append("coordinatorEmailId", ngo_obj.getCoordinatorEmailId());
+	        docBuilder.append("coordinatorMobileNo", ngo_obj.getCoordinatorMobileNo());
+	        docBuilder.append("aboutUs", ngo_obj.getAboutUs());
+	        docBuilder.append("causes", ngo_obj.getCauses());
+	        docBuilder.append("contactUs", ngo_obj.getContactUs());
+	        docBuilder.append("location",ngo_obj.getLocation());
+	        return docBuilder.get();
+	    }
+	    
+	    
+	    public static DBObject getNGO(int id) throws UnknownHostException {
+			MongoClient mongo = new MongoClient("localhost", 27017);
+			DB db = mongo.getDB("hacktest");
+			DBCollection col = db.getCollection("NGOs");
+			BasicDBObject query = new BasicDBObject("_id", id);
+			
+			DBCursor cursor = col.find(query);
+			try {
+			if (cursor.hasNext()) {
+				DBObject object = cursor.next();
+				System.out.println(object);
+				return object;
+			}
+			}	finally {
+				   cursor.close();
+				}
+			return null;
+
+		}
+	    
+	    public static void insertNGO(NGO ngo) throws Exception	   {
+	    //	System.out.println(request);
+	    //   NGO ngo = createNewNgo(request);
+	      // System.out.println("ji");
+		   DBObject doc = createNGODBObject(ngo);
+		   
+	       MongoClient mongo = new MongoClient("localhost", 27017);
+	       DB db = mongo.getDB("hacktest");
+	        
+	       DBCollection col = db.getCollection("NGOs");
+	       
+	       System.out.println("dbobject == " + doc);
+	       WriteResult result = col.insert(doc);
+		   }
+	    
+		public static List<BasicDBObject> searchNGOByCriteria(String category, String city) throws UnknownHostException {
+				List<BasicDBObject> ngoList = new ArrayList<BasicDBObject>();
+				MongoClient mongo = new MongoClient("localhost", 27017);
+		        DB db = mongo.getDB("hacktest");
+		        
+		        DBCollection col = db.getCollection("NGOs");
+		        BasicDBObject q = new BasicDBObject();
+		        q.put("causes", "health care");
+		        q.put("location", "chennai");
+		        
+		        
+		        DBCursor cursor = col.find(q);
+
+		        while(cursor.hasNext()){
+		        	DBObject dbObj = cursor.next();
+		        	ngoList.add((BasicDBObject) dbObj);        	
+		        }
+		        cursor.close();
+		        
+			return ngoList;
+		}
+		
 }
