@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hack.ongo.db.MongoDBDriver;
 import com.hack.ongo.db.User;
@@ -22,34 +23,100 @@ public class UserController {
 
 	@RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody
-	Status addUser(@RequestBody User user) {
+	Status insertUserData(@RequestBody User user) {
+		String returnMsg = null;
 		try {
-//			MongoDBDriver dbDriver = new MongoDBDriver();
-			MongoDBDriver.insertData(user);
-			return new Status(1, "User added Successfully !");
+			System.out.println("before calling MongoDBDriver.insertUserData");
+			returnMsg = MongoDBDriver.insertUserData(user);
+			System.out.println("After calling MongoDBDriver.insertUserData");
+			if (returnMsg.equals("failure-user already existes")) {
+				System.out.println("failed insert record MongoDBDriver.insertUserData");
+				return new Status(1, "User already Exist !");
+			}
+
 		} catch (Exception e) {
-			// e.printStackTrace();
+			e.printStackTrace();
 			return new Status(0, e.toString());
 		}
+		System.out.println("Successfully inserted record MongoDBDriver.insertUserData");
+		return new Status(0, "User added Successfully !");
+
+	}
+	
+	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody
+	Status validateLoginData(@RequestBody User user) {
+		String returnMsg = null;
+		try {
+			System.out.println("before calling MongoDBDriver.validateLoginData");
+			returnMsg = MongoDBDriver.validateLoginData(user);
+			System.out.println("After calling MongoDBDriver.validateLoginData");
+			if (returnMsg.equals("failure-user invalid login credential")) {
+				System.out.println("password validation failed ");
+				return new Status(1, "Invalid Login ID or Password entered !");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Status(0, e.toString());
+		}
+		System.out.println("password authentication success");
+		return new Status(0, "User validation Successfully !");
 
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody
-	User getUser(@PathVariable("id") int id) {
+	String searchUserDataById(@PathVariable("id") int id) {
+		Gson gson = new Gson();
 		User user = new User();
 		try {
-//			MongoDBDriver dbDriver = new MongoDBDriver();
-//			user = (User) MongoDBDriver.getUser(id);
-			BasicDBObject basicDBObject = (BasicDBObject) MongoDBDriver.getUser(id);
+			BasicDBObject basicDBObject = (BasicDBObject) MongoDBDriver.searchUserDataById(id);
+
 			user.setId(basicDBObject.getInt("_id"));
 			user.setName(basicDBObject.getString("name"));
 			user.setRole(basicDBObject.getString("role"));
-			 
+			user.setIsEmployee(basicDBObject.getBoolean("isEmployee"));
+			user.setlPhone(basicDBObject.getString("mPhone"));
+			user.setlPhone(basicDBObject.getString("lPhone"));
+			user.setPassword(basicDBObject.getString("password"));
+			user.setCuase(basicDBObject.getString("cuase"));
+			user.setCuase(basicDBObject.getString("CurrentAddress"));
+			user.setCurrentAddress(basicDBObject.getString("permenantAddress"));
+			user.setAppealCategory(basicDBObject.getString("appealCategory"));
+			user.setAppealInfo(basicDBObject.getString("appealInfo"));
+			user.setAppealDate(basicDBObject.getString("appealDate"));
+			user.setAppealExpiryDate(basicDBObject.getString("appealExpiryDate"));
+		     
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return user;
+		return gson.toJson(user);
+	}
+
+	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Status deleteUserDataById(@PathVariable("id") int user) {
+		try {
+			MongoDBDriver.deleteUserDataById(user);
+			return new Status(1, "User deleted Successfully !");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Status(0, e.toString());
+		}
+	}
+
+	@RequestMapping(value = "{id}", method = RequestMethod.POST)
+	public @ResponseBody
+	Status updateUserDataById(@PathVariable int id, @RequestBody User newValue) {
+		try {
+			MongoDBDriver.updateUserDataById(id, newValue);
+			return new Status(1, "User added Successfully !");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new Status(0, e.toString());
+		}
+
 	}
 
 }
