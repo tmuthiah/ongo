@@ -194,7 +194,9 @@ public class MongoDBDriver {
 	}
 	   public static DBObject createNGODBObject(NGO ngo_obj) {
 	        BasicDBObjectBuilder docBuilder = BasicDBObjectBuilder.start();
-	                                 
+	          
+	        docBuilder.append("userName", ngo_obj.getUserName());
+	        docBuilder.append("password", ngo_obj.getPassword());
 	        docBuilder.append("organisationName", ngo_obj.getOrganisationName());
 	        docBuilder.append("coordinatorName", ngo_obj.getCoordinatorName());
 	        docBuilder.append("coordinatorEmailId", ngo_obj.getCoordinatorEmailId());
